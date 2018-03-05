@@ -8,6 +8,9 @@ import java.util.*;
 
 /**
  * Created by Adriana Rincon on 02/26/2018.
+ *
+ * UrlFinder lists the urls referenced by a page until 50 unique urls are found or nothing is left to find
+ *
  */
 public class UrlFinder {
     public static void main(String[] args) {
@@ -23,7 +26,7 @@ public class UrlFinder {
         return "Usage: urlfinder <url>";
     }
 
-    public static List<String> parsePage(String urlString) {
+    public static Set<String> parsePage(String urlString) {
         // Validate URL
         URL url = null;
         try
@@ -48,7 +51,7 @@ public class UrlFinder {
 
         String inputLine;
         boolean done = false;
-        List<String> urlsFound = new LinkedList<String>();
+        Set<String> urlsFound = new HashSet<String>();
         while (!done) {
             try {
                 inputLine = in.readLine();
@@ -59,7 +62,9 @@ public class UrlFinder {
             if (inputLine == null){
                 return urlsFound;
             } else {
-                urlsFound.addAll(parseUrls(inputLine));
+                if (parseUrls(inputLine, urlsFound)) {
+                    break;
+                }
             }
 
         }
@@ -72,10 +77,9 @@ public class UrlFinder {
         return urlsFound;
     }
 
-    public static List<String> parseUrls(String inputLine)
+    public static boolean parseUrls(String inputLine, Set<String> urlsFound)
     {
         String[] split = inputLine.split("<a href=\"");
-        List<String> returnList = new LinkedList<String>();
 
         if (split.length > 1) {
             boolean isFirstToken = true;
@@ -88,11 +92,18 @@ public class UrlFinder {
                 int lastIndex = temp.indexOf("\"");
                 if (lastIndex >= 0) {
                     String toPrint = temp.substring(0, lastIndex);
-                    returnList.add(toPrint);
-                    System.out.println(toPrint);
+                    if (urlsFound.contains(toPrint)) {
+                        continue;
+                    } else {
+                        urlsFound.add(toPrint);
+                        System.out.println(toPrint);
+                        if (urlsFound.size() >= 50) {
+                            return true;
+                        }
+                    }
                 }
             }
         }
-        return returnList;
+        return false;
     }
 }
